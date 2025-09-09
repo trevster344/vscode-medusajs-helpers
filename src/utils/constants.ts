@@ -1,0 +1,11 @@
+export const subscriberCommand = "extension.medusa_new_subscriber";
+export const linkCommand = "extension.medusa_new_link";
+export const workflowCommand = "extension.medusa_new_workflow";
+export const stepCommand = "extension.medusa_new_step";
+export const jobCommand = "extension.medusa_new_job";
+export const moduleCommand = "extension.medusa_new_module";
+export const providerCommand = "extension.medusa_new_provider";
+export const apiCommand = "extension.medusa_new_api";
+export const openQueryTypesFile = "extension.medusa_open_query_types_file";
+export const typeSearchPanelCommand = "extension.medusa_open_type_search";
+export const modelCommand = "extension.medusa_new_model";

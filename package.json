@@ -1,0 +1,144 @@
+{
+    "name": "vscode-medusa-helpers",
+    "displayName": "vscode-medusa-helpers",
+    "description": "Various helpers for working with @medusajs 2.0+ projects",
+    "repository": "https://github.com/trevster344/vscode-medusajs-helpers",
+    "version": "0.0.5",
+    "engines": {
+        "vscode": "^1.98.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "main": "./out/extension.js",
+    "activationEvents": [
+        "onLanguage:typescript"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "typescript",
+                "extensions": [
+                    ".ts"
+                ],
+                "aliases": [
+                    "TypeScript"
+                ]
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /subscribers/i)",
+                    "command": "extension.medusa_new_subscriber",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /links/i)",
+                    "command": "extension.medusa_new_link",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /modules/i)",
+                    "command": "extension.medusa_new_module",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /jobs/i)",
+                    "command": "extension.medusa_new_job",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /providers/i)",
+                    "command": "extension.medusa_new_provider",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /steps/i)",
+                    "command": "extension.medusa_new_step",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /workflows/i)",
+                    "command": "extension.medusa_new_workflow",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /^api/i)",
+                    "command": "extension.medusa_new_api",
+                    "group": "medusa_options"
+                },
+                {
+                    "when": "explorerResourceIsFolder && (resourceFilename =~ /models/i)",
+                    "command": "extension.medusa_new_model",
+                    "group": "medusa_options"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "extension.medusa_open_query_types_file",
+                "title": "Open Query Types File"
+            },
+            {
+                "command": "extension.medusa_new_subscriber",
+                "title": "Medusa: New Subscriber"
+            },
+            {
+                "command": "extension.medusa_new_workflow",
+                "title": "Medusa: New Workflow"
+            },
+            {
+                "command": "extension.medusa_new_step",
+                "title": "Medusa: New Step"
+            },
+            {
+                "command": "extension.medusa_new_link",
+                "title": "Medusa: New Link"
+            },
+            {
+                "command": "extension.medusa_new_job",
+                "title": "Medusa: New Job"
+            },
+            {
+                "command": "extension.medusa_new_model",
+                "title": "Medusa: New Model"
+            },
+            {
+                "command": "extension.medusa_new_provider",
+                "title": "Medusa: New Provider"
+            },
+            {
+                "command": "extension.medusa_new_module",
+                "title": "Medusa: New Module"
+            },
+            {
+                "command": "extension.medusa_new_api",
+                "title": "Medusa: New API"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src",
+        "test": "vscode-test",
+        "build": "npx node build.js"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "20.x",
+        "@types/vscode": "^1.98.0",
+        "@typescript-eslint/eslint-plugin": "^8.25.0",
+        "@typescript-eslint/parser": "^8.25.0",
+        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-electron": "^2.4.1",
+        "eslint": "^9.21.0",
+        "typescript": "^5.7.3"
+    },
+    "dependencies": {
+        "prettier": "^3.6.2"
+    }
+}
