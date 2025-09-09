@@ -26,6 +26,7 @@ Medusa Helpers is a Visual Studio Code extension that provides productivity tool
 - `Medusa: New Job`
 - `Medusa: New Provider`
 - `Medusa: New Module`
+- `Medusa: New Model`
 - `Medusa: New API`
 - `Medusa: Open Query Types File`
 
