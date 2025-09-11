@@ -3,7 +3,7 @@
     "displayName": "vscode-medusa-helpers",
     "description": "Various helpers for working with @medusajs 2.0+ projects",
     "repository": "https://github.com/trevster344/vscode-medusajs-helpers",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "packageManager": "npm@11.3.0",
     "workspaces": [
         "client"
