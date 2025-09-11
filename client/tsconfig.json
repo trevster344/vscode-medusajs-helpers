@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "baseUrl": "src", // allows paths to be relative to the repo root
+        "paths": {},
+        "moduleResolution": "bundler",
+        "target": "ESNext",
+        "module": "ESNext",
+        "jsx": "preserve",
+        "rootDir": "src",
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "allowJs": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "noImplicitThis": false,
+        "noImplicitReturns": false,
+        "noEmit": true
+    },
+    "include": ["src", "src/main.ts"]
+}

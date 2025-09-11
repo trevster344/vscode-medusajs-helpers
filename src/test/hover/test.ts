@@ -1,8 +1,8 @@
-const query_service = {
+const query_mock = {
     graph: {} as any,
 };
 
-const customers_to_demo = query_service.graph({
+const data_mock = query_mock.graph({
     entity: "subscription_plan",
     fields: ["*"],
     filters: {},

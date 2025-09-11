@@ -7,5 +7,5 @@ export const moduleCommand = "extension.medusa_new_module";
 export const providerCommand = "extension.medusa_new_provider";
 export const apiCommand = "extension.medusa_new_api";
 export const openQueryTypesFile = "extension.medusa_open_query_types_file";
-export const typeSearchPanelCommand = "extension.medusa_open_type_search";
 export const modelCommand = "extension.medusa_new_model";
+export const typeQueryTypeSearch = "extension.medusa_open_query_type_search";

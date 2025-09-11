@@ -1,17 +1,15 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import prettier from "prettier";
-
-import jobsTemplate from "./templates/jobs";
-import apisTemplate from "./templates/api";
-import subscribersTemplate from "./templates/subscribers";
-import { index, service, loader, model } from "./templates/modules";
-import workflowsTemplate from "./templates/workflows";
-import providersTemplate from "./templates/providers";
-import linksTemplate from "./templates/links";
-import stepsTemplate from "./templates/steps";
-import modelsTemplate from "./templates/models";
+import jobsTemplate from "./src/templates/jobs";
+import apisTemplate from "./src/templates/api";
+import subscribersTemplate from "./src/templates/subscribers";
+import { index, service, loader, model } from "./src/templates/modules";
+import workflowsTemplate from "./src/templates/workflows";
+import providersTemplate from "./src/templates/providers";
+import linksTemplate from "./src/templates/links";
+import stepsTemplate from "./src/templates/steps";
+import modelsTemplate from "./src/templates/models";
 
 import {
     generateDashedName,
@@ -19,7 +17,12 @@ import {
     removeExtension,
     generateUnderscoredName,
     queryFileSearch,
-} from "./utils/utils";
+    generateTypeHover,
+    createQueryTypePanel,
+    removeUndefined,
+    getSelectedText,
+    getTypeInQueryFile,
+} from "./src/lib";
 import {
     subscriberCommand,
     openQueryTypesFile,
@@ -31,7 +34,8 @@ import {
     providerCommand,
     apiCommand,
     modelCommand,
-} from "./utils/constants";
+    typeQueryTypeSearch,
+} from "./src/utils/constants";
 
 const commandHandler = async (uri: vscode.Uri, FileName?: string) => {
     try {
@@ -236,6 +240,7 @@ const commandHandler = async (uri: vscode.Uri, FileName?: string) => {
                     "${workflow_name}",
                     pascalName
                 );
+
                 output_template = template?.[0]?.replace(
                     "${workflow_title}",
                     generateUnderscoredName(workflow_name)
@@ -283,22 +288,6 @@ const commandHandler = async (uri: vscode.Uri, FileName?: string) => {
     }
 };
 
-function getQueryFilePath() {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) return;
-    const folderPath = workspaceFolders?.[0]?.uri?.fsPath;
-    const tsTypesFile = path.join(
-        folderPath,
-        "app/.medusa/types",
-        `query-entry-points.d.ts`
-    );
-    return tsTypesFile;
-}
-
-function escapeRegExp(input: string): string {
-    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -320,101 +309,40 @@ export function activate(context: vscode.ExtensionContext) {
                 async provideHover(document, position, token) {
                     //console.log("HOVER TRIGGERED");
 
-                    const range = document.getWordRangeAtPosition(
-                        position,
-                        /"[^"]+"/
-                    );
-                    const word =
-                        document
-                            .getText(range)
-                            .replace(/"/g, "")
-                            ?.split("_")
-                            ?.join("") ?? "";
+                    let word: string | undefined = undefined;
+                    const editor = vscode.window.activeTextEditor;
+                    let range: vscode.Range | undefined = undefined;
 
-                    const lineText = document.lineAt(position.line).text;
-
-                    if (
-                        (lineText?.includes("entity:") ||
-                            lineText?.includes("entryPoint:")) &&
-                        word
-                    ) {
-                        const workspaceFolders =
-                            vscode.workspace.workspaceFolders;
-                        if (!workspaceFolders) return;
-
-                        const tsTypesFile = query_file_path;
-                        //console.log("Types file: " + tsTypesFile);
-
-                        const tsTypeContent = fs.readFileSync(
-                            tsTypesFile!,
-                            "utf8"
+                    // 1️⃣ Check for selected text
+                    const selection = editor?.selection;
+                    if (selection && !selection.isEmpty) {
+                        word = document.getText(selection);
+                        range = selection;
+                    } else {
+                        range = document.getWordRangeAtPosition(
+                            position,
+                            /"[^"]+"/
                         );
-                        let preview = "";
 
-                        try {
-                            const found_indexes: any = {};
+                        const _line = document.lineAt(position.line).text;
 
-                            //let
-                            const lines = tsTypeContent?.split("\n") ?? [];
-
-                            const expression = new RegExp(
-                                `export type (${escapeRegExp(word)}) =`,
-                                "gi"
-                            );
-
-                            const matches = lines.map((e, i) => ({
-                                match: e.match(expression),
-                                index: i,
-                            }));
-
-                            preview =
-                                matches
-                                    ?.filter((e) => !!e.match)
-                                    ?.map(({ match: e, index: startIndex }) => {
-                                        const endIndex = lines?.findIndex(
-                                            (line, index) =>
-                                                index > startIndex &&
-                                                line.includes("}")
-                                        );
-                                        const raw_script =
-                                            lines
-                                                ?.slice(
-                                                    startIndex,
-                                                    endIndex + 1
-                                                )
-                                                .join("\n") ?? "";
-                                        return raw_script;
-                                    })
-                                    ?.join("\n") ?? "";
-                        } catch (e: any) {
-                            vscode.window.showErrorMessage(
-                                `Error parsing TS types file: ${e?.message}`
-                            );
-                            preview = "";
+                        if (
+                            _line?.includes("entity:") ||
+                            _line?.includes("entryPoint:")
+                        ) {
+                            word = document.getText(range);
                         }
+                    }
 
-                        const formatted = await prettier
-                            .format(preview, {
-                                parser: "typescript",
-                                semi: true,
-                                singleQuote: true,
-                            })
-                            .catch((e) => e?.message);
+                    // Remove the _ from any type names as they are not part of the actual type
+                    word = word?.replace(/"/g, "")?.split("_")?.join("") ?? "";
 
-                        const markdown = new vscode.MarkdownString();
-                        markdown.appendCodeblock(formatted, "typescript");
-
-                        markdown.appendMarkdown(
-                            `\n\n[Open File](command:${openQueryTypesFile})\n\n`
+                    if (word) {
+                        return await generateTypeHover(
+                            query_file_path!,
+                            word,
+                            range!
                         );
-
-                        // markdown.appendMarkdown(
-                        //     `\n\n[Search](command:${typeSearchPanelCommand})\n\n`
-                        // );
-
-                        markdown.isTrusted = true;
-
-                        return new vscode.Hover(markdown, range);
                     }
                 },
             }
@@ -454,48 +382,42 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    // function getWebviewContent(): string {
-    //     return `
-    //     <!DOCTYPE html>
-    //     <html lang="en">
-    //     <head>
-    //     <meta charset="UTF-8">
-    //     <title>Simulation Panel</title>
-    //     </head>
-    //     <body>
-    //     <h1>Welcome to the Simulation Panel</h1>
-    //     <input type="text" id="searchBox" placeholder="Search..." />
-    //     <div id="results"></div>
+    const typeQuerySearchDisposable = vscode.commands.registerCommand(
+        typeQueryTypeSearch,
+        async () => {
+            const panel = createQueryTypePanel(context);
+            const query = getSelectedText();
+            const result = await getTypeInQueryFile(
+                query_file_path!,
+                query.word
+            );
 
-    //     <script>
-    //         const input = document.getElementById('searchBox');
-    //         input.addEventListener('input', () => {
-    //         const query = input.value;
-    //         document.getElementById('results').innerText = 'Searching for: ' + query;
-    //         });
-    //     </script>
-    //     </body>
-    //     </html>
-    // `;
-    // }
+            panel.webview.onDidReceiveMessage(async (message) => {
+                if (message.type === "search") {
+                    const query = message?.payload?.query;
+                    const query_result = await getTypeInQueryFile(
+                        query_file_path!,
+                        query
+                    );
 
-    // const typeSearchDisposable = vscode.commands.registerCommand(
-    //     typeSearchPanelCommand,
-    //     () => {
-    //         const panel = vscode.window.createWebviewPanel(
-    //             "medusa_code_search_panel", // Internal ID
-    //             "Code Search", // Title
-    //             vscode.ViewColumn.One, // Where to show
-    //             {
-    //                 enableScripts: true, // Allow JS in the webview
-    //             }
-    //         );
+                    panel.webview.postMessage({
+                        type: "search",
+                        payload: removeUndefined({
+                            query: query,
+                            result: query_result,
+                        }),
+                    });
+                }
+            });
 
-    //         panel.webview.html = getWebviewContent();
-    //     }
-    // );
+            panel.webview.postMessage({
+                type: "search",
+                payload: removeUndefined({ query: query.word, result }),
+            });
+        }
+    );
 
-    //context.subscriptions.push(typeSearchDisposable);
+    context.subscriptions.push(typeQuerySearchDisposable);
     context.subscriptions.push(openQueryTypesDisposable);
 
     // ---------------------------
