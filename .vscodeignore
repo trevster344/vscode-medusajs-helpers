@@ -1,5 +1,4 @@
 out-client/**
-node_modules/**
 .turbo/**
 releases/**
 src/**
